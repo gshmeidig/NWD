@@ -18,6 +18,8 @@ Es gibt jedoch Techniken wie NAT-Traversal (NAT-T), die entwickelt wurden, um di
 Insgesamt erfordert die Kombination von IPSec und NAT eine sorgfältige Konfiguration und gegebenenfalls den Einsatz von Techniken wie NAT-T, um sicherzustellen, dass sowohl die Sicherheitsanforderungen von IPSec als auch die Funktionen von NAT erfüllt werden.
 </p>
 
+## Dokumentation
+
 ## Glossar
 
 ### OSPF (Open Shortest Path First)
