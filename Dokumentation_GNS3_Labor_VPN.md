@@ -20,32 +20,52 @@ Insgesamt erfordert die Kombination von IPSec und NAT eine sorgfältige Konfigur
 
 ## Dokumentation
 
-/system identity 
-set name=LS-R1
+<p>Der Standort Lausanne haben wir wie folgt konfiguriert:<p>
+TEST
 
-/ip address 
-add address=203.0.113.70/30 interface=ether1 network=203.0.113.69
+    /system identity
+    set name=LS-R1
 
-/ip route 
-add dst-address=0.0.0.0/0 gateway=203.0.113.69
+Hallo
 
-/ip dns
-set allow-remote-requests=yes servers=8.8.8.8
+<br>
+    /ip address 
+    add address=203.0.113.70/30 interface=ether1 network=203.0.113.69
 
-/ip address 
-add address=192.168.13.1/24 interface=ether2 network=192.168.13.0
+Hallo
 
-/ip pool
-add name=dhcp_pool1 ranges=192.168.13.50-192.168.13.100
+    /ip route 
+    add dst-address=0.0.0.0/0 gateway=203.0.113.69
 
-/ip dhcp-server network
-add address=192.168.13.0/24 dns-server=192.168.13.1 gateway=192.168.13.1
+Hallo
 
-/ip dhcp-server/
-add address-pool=dhcp_pool1 interface=ether2 name=dhcp1
+    /ip dns
+    set allow-remote-requests=yes servers=8.8.8.8
 
-/ip firewall nat
-add action=masquerade chain=srcnat out-interface=ether1
+Hallo
+
+    /ip address 
+    add address=192.168.13.1/24 interface=ether2 network=192.168.13.0
+
+Hallo
+
+    /ip pool
+    add name=dhcp_pool1 ranges=192.168.13.50-192.168.13.100
+
+Test
+
+    ip dhcp-server network
+    add address=192.168.13.0/24 dns-server=192.168.13.1 gateway=192.168.13.1
+
+Text
+
+    /ip dhcp-server/
+    add address-pool=dhcp_pool1 interface=ether2 name=dhcp1
+
+Test
+
+    /ip firewall nat
+    add action=masquerade chain=srcnat out-interface=ether1
 
 ###########################Site to Site IPsec tunnel (LS to BS)
 
