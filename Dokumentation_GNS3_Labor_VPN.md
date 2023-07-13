@@ -20,6 +20,109 @@ Insgesamt erfordert die Kombination von IPSec und NAT eine sorgfältige Konfigur
 
 ## Dokumentation
 
+/system identity 
+set name=LS-R1
+
+/ip address 
+add address=203.0.113.70/30 interface=ether1 network=203.0.113.69
+
+/ip route 
+add dst-address=0.0.0.0/0 gateway=203.0.113.69
+
+/ip dns
+set allow-remote-requests=yes servers=8.8.8.8
+
+/ip address 
+add address=192.168.13.1/24 interface=ether2 network=192.168.13.0
+
+/ip pool
+add name=dhcp_pool1 ranges=192.168.13.50-192.168.13.100
+
+/ip dhcp-server network
+add address=192.168.13.0/24 dns-server=192.168.13.1 gateway=192.168.13.1
+
+/ip dhcp-server/
+add address-pool=dhcp_pool1 interface=ether2 name=dhcp1
+
+/ip firewall nat
+add action=masquerade chain=srcnat out-interface=ether1
+
+###########################Site to Site IPsec tunnel (LS to BS)
+
+add chain=forward action=accept place-before=0 src-address=192.168.11.0/24 dst-address=192.168.13.0/24 connection-state=established,related
+add chain=forward action=accept place-before=1 src-address=192.168.13.0/24 dst-address=192.168.11.0/24 connection-state=established,related
+
+add action=notrack chain=prerouting src-address=192.168.13.0/24 dst-address=192.168.11.0/24
+add action=notrack chain=prerouting src-address=192.168.11.0/24 dst-address=192.168.13.0/24
+
+
+###########################Site to Site WireGuard tunnel (LS to ZH)
+
+#### interface configuration:
+
+##LS-R1
+/interface/wireguard
+add listen-port=13234 name=wireguardZH
+
+/interface/wireguard print
+ 1  R name="wireguardZH" mtu=1420 listen-port=13234 private-key="oGDJYeJg+kcUjqZUa0bw3BpWhsvPh2HdT5iGFBS20l4="
+      public-key="lZexpEtJY2Pdb4X0oC7D63iOTMZqziYirHybnePaXkg="
+
+
+##ZH-R1
+add listen-port=13234 name=wireguardLS
+
+/interface/wireguard print
+ 1  R name="wireguardLS" mtu=1420 listen-port=13234 private-key="sJMJVT6w2YoK3Ruv5Z8HJklst6djLLZnOlnuEBk4DWs="
+      public-key="yWwRYBChRvZOTiBdGKaxaq5+R9eFslvoMIHdDOljGiE="
+
+####Peer configuration
+
+##LS-R1
+/interface/wireguard/peers
+add allowed-address=192.168.9.0/24 endpoint-address=203.0.113.98 endpoint-port=13234 interface=wireguardZH \
+public-key="yWwRYBChRvZOTiBdGKaxaq5+R9eFslvoMIHdDOljGiE="
+#Public Key von Zürich
+
+##ZH-R1-R1
+/interface/wireguard/peers
+add allowed-address=192.168.13.0/24 endpoint-address=203.0.113.70 endpoint-port=13234 interface=wireguardLS \
+public-key="lZexpEtJY2Pdb4X0oC7D63iOTMZqziYirHybnePaXkg="
+#Public Key von Lausanne
+
+####IP and routing configuration
+
+##LS-R1
+/ip/address
+add address=192.168.250.1/30 interface=wireguardZH
+/ip/route
+add dst-address=192.168.9.0/24 gateway=wireguardZH
+
+##ZH-R1
+/ip/address
+add address=192.168.250.1/30 interface=wireguardLS
+/ip/route
+add dst-address=192.168.13.0/24 gateway=wireguardLS
+
+####Firewall considerations
+
+##LS-R1
+/ip/firewall/filter
+add action=accept chain=input dst-port=13234 protocol=udp src-address=203.0.113.98
+add action=accept chain=input dst-port=13234 protocol=udp src-address=192.168.250.2
+add action=accept chain=forward dst-address=192.168.9.0/24 src-address=192.168.13.0/24
+add action=accept chain=forward dst-address=192.168.13.0/24 src-address=192.168.9.0/24
+
+
+##ZH-R1
+/ip/firewall/filter
+add action=accept chain=input dst-port=13234 protocol=udp src-address=203.0.113.70
+add action=accept chain=input dst-port=13234 protocol=udp src-address=192.168.250.1
+add action=accept chain=forward dst-address=192.168.13.0/24 src-address=192.168.9.0/24
+add action=accept chain=forward dst-address=192.168.9.0/24 src-address=192.168.13.0/24
+
+
+
 ## Glossar
 
 ### OSPF (Open Shortest Path First)
