@@ -1,5 +1,7 @@
 # HF – NWD GNS3 Labor: VPN Technologien
-![GNS3 Labor - VPN](.\Bilder/GNS3LaborVPN.png)
+![GNS3 Labor - VPN](/Bilder/GNS3LaborVPN.png)
+
+
 ## VPN Technologien analysiert
 
 ## VPN Frage
