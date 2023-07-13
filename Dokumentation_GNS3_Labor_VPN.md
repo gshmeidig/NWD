@@ -1,6 +1,25 @@
 # HF – NWD GNS3 Labor: VPN Technologien
 ![GNS3 Labor - VPN](/Bilder/GNS3LaborVPN.png)
 
+## Auftrag
+
+### Einleitung
+Sie haben als Netzwerkingenieur den Auftrag erhalten in einem KMU einen zusätzlichen Geschäftsstandort per VPN zu
+erschliessen. Das KMU hat keinen eigenen Betriebsinformatiker. Jedes Mal, wenn eine Erweiterung des Netzwerkes
+benötigt wurde, hat das KMU eine andere IT-Firma beauftrag. Das hat zur Folge, dass überall unterschiedliche Geräte und
+VPN-Technologien eingesetzt wurden. Das ist eine optimale Gelegenheit, um neue VPN-Technologien kennenzulernen
+und zu vergleichen!
+Die Wahl des Gerätes für Lausanne steht Ihnen frei. Alle anderen Standorte haben einen funktionierenden
+Internetanschluss und eine funktionierende VPN-Verbindung an den Hauptstandort in Zürich. In der Mitte finden Sie ein
+Netzwerk eines fiktiven ISP. Der verwendet OSPF als internes Routing-Protokoll (iBGP eignet sich für ISP besser). Über den
+ISP können sie auch auf das Internet zugreifen.
+Lernziele:
+- Unterschiedliche VPN-Technologien kennenlernen
+- VPN auf einem Router konfigurieren, testen und dokumentieren
+Die messbaren Ziele sind direkt im GNS3 Projekt zu finden (siehe Screenshot oben)
+
+### Themengebite
+
 
 ## VPN Technologien analysiert
 
