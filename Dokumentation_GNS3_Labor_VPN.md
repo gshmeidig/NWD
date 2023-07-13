@@ -28,3 +28,5 @@ Insgesamt erfordert die Kombination von IPSec und NAT eine sorgfältige Konfigur
 
 ### iBGP (Internal Border Gateway Protocol)
 <p>iBGP wird verwendet, um Informationen für Ihre internen Router bereitzustellen. iBGP erfordert, dass alle Geräte im selben autonomen System eine vollständige Mesh-Nachbarschaft oder entweder einen Routenreflektor oder eine Konföderation für das Präfix-Lernen bilden.</p>
+
+<p>
