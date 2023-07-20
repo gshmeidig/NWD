@@ -152,8 +152,12 @@ Zusätzlich wird der Name "dhcp1" festgelegt.
     /ip dhcp-server/
     add address-pool=dhcp_pool1 interface=ether2 name=dhcp1
 
+Mit "action=masquerade" wird der Datenverkehr verschleiert.
+
+mit "chain=srcnat" wird die Firewall-Kette angegeben. Wir haben sie in den "srcnat"Kette platziert, die für den ausgehenden Datenverkehr verwendet wird.
+
 Konfigurationen für die Firewall NAT werden festgelegt, um den ausgehenden Verkehr zu regeln.
-mit "out-interface=ether1" wird der Ausgangsinterface 
+mit "out-interface=ether1" wird der Ausgangsinterface definiert bzw über welchen interface er die Verschleierung anwenden soll.
 
     /ip firewall nat
     add action=masquerade chain=srcnat out-interface=ether1
