@@ -182,9 +182,15 @@ add action=notrack chain=prerouting src-address=192.168.11.0/24 dst-address=192.
 
 
 ###########################Site to Site WireGuard tunnel (LS to ZH)
+Anhand der folgenden Anleitung 
 https://help.mikrotik.com/docs/display/ROS/WireGuard
 
-#### interface configuration:
+#### WireGuard interface configuration:
+
+Im Prinzip müssen beide Routers (LS-R1 und ZH-R1) konfiguriert werden, sodass die Private und Public Keys automatisch generiert werden.
+
+Der gesetzte Listen-Port muss bei beiden der gleiche sein (in unserem Fall "13234")
+
 
 ##LS-R1
 /interface/wireguard
@@ -202,7 +208,12 @@ add listen-port=13234 name=wireguardLS
  1  R name="wireguardLS" mtu=1420 listen-port=13234 private-key="sJMJVT6w2YoK3Ruv5Z8HJklst6djLLZnOlnuEBk4DWs="
       public-key="yWwRYBChRvZOTiBdGKaxaq5+R9eFslvoMIHdDOljGiE="
 
+
+
 ####Peer configuration
+
+Die Peer configuration definiert, wer die WireGuard-Schnittstelle nutzen kann und welche Art von Datenverkehr darüber gesendet werden kann.
+Um die Gegenstelle zu identifizieren, muss ihr öffentlicher Schlüssel zusammen mit der erstellten WireGuard-Schnittstelle angegeben werden.
 
 ##LS-R1
 /interface/wireguard/peers
@@ -216,7 +227,12 @@ add allowed-address=192.168.13.0/24 endpoint-address=203.0.113.70 endpoint-port=
 public-key="lZexpEtJY2Pdb4X0oC7D63iOTMZqziYirHybnePaXkg="
 #Public Key von Lausanne
 
+
+
 ####IP and routing configuration
+
+Zum Schluss müssen die IP und Routing Informationen konfiguriert werden, um den Datenverekhr über den Tunnel zu ermöglichen
+
 
 ##LS-R1
 /ip/address
@@ -230,7 +246,10 @@ add address=192.168.250.1/30 interface=wireguardLS
 /ip/route
 add dst-address=192.168.13.0/24 gateway=wireguardLS
 
+
+
 ####Firewall considerations
+Bei der Firewall müssen auch noch Einstellungen vorgenommen werden. Standardmässig wird der Tunnel blockiert und somit müssen die Input-Chains von beiden Seiten akzeptiert, um die Kommunikation zu gewährleisten.
 
 ##LS-R1
 /ip/firewall/filter
