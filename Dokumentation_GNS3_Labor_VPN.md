@@ -164,7 +164,7 @@ mit "out-interface=ether1" wird der Ausgangsinterface definiert bzw über welche
 ### IPsec Site to Site - Lausanne to Basel
 Alle Konfigurationen wurden über das Terminal getätigt. Mit dem Interface werden manchmal unnötige Einstellungen aktivert, welche man nur über das Terminal löschen kann.
 
-#### Konfiguration Lausanne
+#### Konfiguration Router Lausanne - LS-R1
 
 Als aller erst wird ein IPsec Profile erstellt. Dabei werden mittels "dh-group" die Verhandlungsmethode für den Schlüsselaustausch gewählt und danach den Verschlüsselungsalgorithmus gewält.
 
@@ -209,7 +209,8 @@ Um dies entgegen zu wirken kann die Verbindungsverfolgung Umgangen werden.
 
     add action=notrack chain=prerouting src-address=192.168.13.0/24 dst-address=192.168.11.0/24
 
-TEST
+#### Konfiguration Router Basel - BS-R1
+
 
 add action=notrack chain=prerouting src-address=192.168.11.0/24 dst-address=192.168.13.0/24
 
