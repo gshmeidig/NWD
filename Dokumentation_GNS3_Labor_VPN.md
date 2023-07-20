@@ -158,10 +158,17 @@ mit "out-interface=ether1" wird der Ausgangsinterface
     /ip firewall nat
     add action=masquerade chain=srcnat out-interface=ether1
 
+### IPsec Lausanne to Basel
+#### Konfiguration Lausanne
 
+/ip ipsec profile
+add dh-group=modp2048 enc-algorithm=aes-128 name=ike1-site2
+/ip ipsec proposal
+add enc-algorithms=aes-128-cbc name=ike1-site2 pfs-group=modp2048
 
 ###########################Site to Site IPsec tunnel (LS to BS)
 https://help.mikrotik.com/docs/display/ROS/IPsec#IPsec-SitetoSiteIPsec(IKEv1)tunnel
+
 
 add chain=forward action=accept place-before=0 src-address=192.168.11.0/24 dst-address=192.168.13.0/24 connection-state=established,related
 add chain=forward action=accept place-before=1 src-address=192.168.13.0/24 dst-address=192.168.11.0/24 connection-state=established,related
