@@ -96,8 +96,7 @@ Insgesamt erfordert die Kombination von IPSec und NAT eine sorgfältige Konfigur
 
 ## Dokumentation
 
-<p>Der Standort Lausanne haben wir wie folgt konfiguriert:<p>
-Es ist ein Mikrotik Router und mussten dementsprechend die richtigen Befehle heraussuchen.
+<p>Der Standort Lausanne ist wie folgt konfiguriert:<p>
 
 Zuerst haben wir den Namen für den Router mit folgendem Befehl gesetzt:<br>
 
@@ -165,8 +164,11 @@ mit "out-interface=ether1" wird der Ausgangsinterface definiert bzw über welche
 ### IPsec Lausanne to Basel
 #### Konfiguration Lausanne
 
+Das 
+
 /ip ipsec profile
-add dh-group=modp2048 enc-algorithm=aes-128 name=ike1-site2
+add dh-group=modp2048 enc-algorithm=aes-128 name=ike1
+
 /ip ipsec proposal
 add enc-algorithms=aes-128-cbc name=ike1-site2 pfs-group=modp2048
 
