@@ -161,25 +161,56 @@ mit "out-interface=ether1" wird der Ausgangsinterface definiert bzw über welche
     /ip firewall nat
     add action=masquerade chain=srcnat out-interface=ether1
 
-### IPsec Lausanne to Basel
+### IPsec Site to Site - Lausanne to Basel
+Alle Konfigurationen wurden über das Terminal getätigt. Mit dem Interface werden manchmal unnötige Einstellungen aktivert, welche man nur über das Terminal löschen kann.
+
 #### Konfiguration Lausanne
 
-Das 
+Als aller erst wird ein IPsec Profile erstellt. Dabei werden mittels "dh-group" die Verhandlungsmethode für den Schlüsselaustausch gewählt und danach den Verschlüsselungsalgorithmus gewält.
 
-/ip ipsec profile
-add dh-group=modp2048 enc-algorithm=aes-128 name=ike1
+    /ip ipsec profile
+    add dh-group=modp2048 enc-algorithm=aes-128 name=ike1-BS
 
-/ip ipsec proposal
-add enc-algorithms=aes-128-cbc name=ike1-site2 pfs-group=modp2048
+Nun wird der Proposal erstellt, in welchem ebenfalls die Verhandlungsmethode und Verschlüsselungsalgorithmus eingestllt wird.
 
-###########################Site to Site IPsec tunnel (LS to BS)
-https://help.mikrotik.com/docs/display/ROS/IPsec#IPsec-SitetoSiteIPsec(IKEv1)tunnel
+    /ip ipsec proposal
+    add enc-algorithms=aes-128-cbc name=ike1-BS pfs-group=modp2048
 
+Weiter wird die so gennante "Gegenstelle" das Peer konfiguriert. Dabei wird die IP des zuerreichenden Router eingegeben.
+    /ip ipsec peer
+    add address=203.0.113.82/32 name=ike1-BS profile=ike1-BS
 
-add chain=forward action=accept place-before=0 src-address=192.168.11.0/24 dst-address=192.168.13.0/24 connection-state=established,related
-add chain=forward action=accept place-before=1 src-address=192.168.13.0/24 dst-address=192.168.11.0/24 connection-state=established,related
+Als näcshter Schritt wird die "Identity" erstellt, wobei ein gemeinsamen sogennanten "Pre-Shared Key" defineirt wrid. Der Pre-Shared Key wird ebenfalls auf dem entfernten Router hinterlegt.
 
-add action=notrack chain=prerouting src-address=192.168.13.0/24 dst-address=192.168.11.0/24
+    /ip ipsec identity
+    add peer=ike1-BS secret=tbz1234
+
+Weiter wird eine Richtlinie erstellen, die die Netze/Hosts steuert, zwischen denen der Datenverkehr verschlüsselt werden soll.
+
+    ip ipsec policy
+    add dst-address=192.168.11.0/24 peer=ike1-BS proposal=ike1-BS src-address=192.168.13.0/24 tunnel=yes
+
+Nun wird zwar der IPsec Tunnel aufgebaut, jeodch können noch keine Daten über den IPsec-Tunnel gesendet werden.
+Dies liegt daran, dass beide Router NAT-Regeln (Masquerade) haben, die die Quelladressen ändern, bevor ein Paket verschlüsselt wird. Der Router ist nicht in der Lage, das Paket zu verschlüsseln, weil die Quelladresse nicht mit der in der Richtlinienkonfiguration angegebenen Adresse übereinstimmt.
+
+Um dies zu beheben, müssen wir eine IP/Firewall/NAT-Umgehungsregel einrichten.
+Dabei ist es sehr wichtig, dass die Bypass-Regel an erster Stelle aller anderen NAT-Regeln steht.
+
+    add action=accept chain=srcnat dst-address=192.168.11.0/24 src-address=192.168.13.0/24
+
+Ein weiteres Problem ist, dass bei aktiviertem IP/Fasttrack das Paket die IPsec-Richtlinien umgeht. Wir müssen also eine Akzeptanzregel vor FastTrack hinzufügen.
+
+    /ip firewall filter
+    add chain=forward action=accept place-before=0 src-address=192.168.11.0/24 dst-address=192.168.13.0/24 connection-state=established,related
+    add chain=forward action=accept place-before=1 src-address=192.168.13.0/24 dst-address=192.168.11.0/24 connection-state=established,related
+
+Dies kann jedoch zu einer erheblichen Belastung der CPU des Routers führen, wenn eine größere Anzahl von Tunneln und erheblicher Datenverkehr in jedem Tunnel vorhanden sind.
+Um dies entgegen zu wirken kann die Verbindungsverfolgung Umgangen werden.
+
+    add action=notrack chain=prerouting src-address=192.168.13.0/24 dst-address=192.168.11.0/24
+
+TEST
+
 add action=notrack chain=prerouting src-address=192.168.11.0/24 dst-address=192.168.13.0/24
 
 
