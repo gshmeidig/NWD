@@ -50,45 +50,60 @@ Zuerst haben wir den Namen für den Router mit folgendem Befehl gesetzt:<br>
     set name=LS-R1
 
 
-Anschliessend 
+Anschliessend muss die IP Adresse gesetzt werden.
+Für das Interface "ether1" haben wir die IP Adresse 203.0.113.70 mit der CIDR 30 gesetzt.
+Mit dem "network" wird sozusagen das Gateway "203.0.113.69" definiert.
 
     /ip address 
     add address=203.0.113.70/30 interface=ether1 network=203.0.113.69
 
-Hallo
+Das Routing wird hier definiert. mit dst-address wird das Zielnetzwerk definiert bzw die Standardroute wo die Pakete weitergeleitet werden.
 
     /ip route 
     add dst-address=0.0.0.0/0 gateway=203.0.113.69
 
-Hallo
+Als nächstes wird die DNS konfiguriert.
+Dafür gibt es die beiden Befehle "set allow-remote-requests" und "servers"
+
+Mit "allow-remote-requests=yes" wird gesetzt, dass externe Geräte DNS-Anfragen über diesen Router stellen können. Somit kann der Router DNS-Anfragen von externen Quellen beantworten.
 
     /ip dns
     set allow-remote-requests=yes servers=8.8.8.8
 
-Hallo
+Hier wird eine zusätzliche IP Adresse gesetzt aber für das interrface "ether2".
 
     /ip address 
     add address=192.168.13.1/24 interface=ether2 network=192.168.13.0
 
-Hallo
+Im Verzeichnis /ip pool
+add name=dhcp_pool1 wird der Name gesetzt
+Der IP Pool wird gesetzt mit dem Range von 192.168.13.50 bis 192.168.13.100.
+Somit wird über den DHCP Server des Routers die IP Adresse der Geräte in diesem Range dynamisch gesetzt
 
     /ip pool
     add name=dhcp_pool1 ranges=192.168.13.50-192.168.13.100
 
-Test
+Nun werden die Parameter für den DHCP-Server Netzwerk gesetzt
+
+Mit "adress" wird die IP Adresse inkl. CIDR 24 gesetzt<br>
+Mit DNS-Server wird die Adresse vom DNS Server gesetzt und mit gateway natürlich die Gateway Adresse.
 
     ip dhcp-server network
     add address=192.168.13.0/24 dns-server=192.168.13.1 gateway=192.168.13.1
 
-Text
+Mit "address-pool=dhcp_pool1" wird der Adress Pool festgelegt und gilt für den Interface "ether2".
+Zusätzlich wird der Name "dhcp1" festgelegt.
 
     /ip dhcp-server/
     add address-pool=dhcp_pool1 interface=ether2 name=dhcp1
 
-Test
+Konfigurationen für die Firewall NAT werden festgelegt, um den ausgehenden Verkehr zu regeln.
+mit "out-interface=ether1" wird der Ausgangsinterface 
 
     /ip firewall nat
     add action=masquerade chain=srcnat out-interface=ether1
+
+
 
 ###########################Site to Site IPsec tunnel (LS to BS)
 
