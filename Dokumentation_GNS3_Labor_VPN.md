@@ -227,19 +227,21 @@ Der gesetzte Listen-Port muss bei beiden der gleiche sein (in unserem Fall "1323
 
 
 ##LS-R1
-/interface/wireguard
-add listen-port=13234 name=wireguardZH
 
-/interface/wireguard print
- 1  R name="wireguardZH" mtu=1420 listen-port=13234 private-key="oGDJYeJg+kcUjqZUa0bw3BpWhsvPh2HdT5iGFBS20l4="
+    /interface/wireguard
+    add listen-port=13234 name=wireguardZH
+
+    /interface/wireguard print
+     1  R name="wireguardZH" mtu=1420 listen-port=13234 private-key="oGDJYeJg+kcUjqZUa0bw3BpWhsvPh2HdT5iGFBS20l4="
       public-key="lZexpEtJY2Pdb4X0oC7D63iOTMZqziYirHybnePaXkg="
 
 
 ##ZH-R1
-add listen-port=13234 name=wireguardLS
 
-/interface/wireguard print
- 1  R name="wireguardLS" mtu=1420 listen-port=13234 private-key="sJMJVT6w2YoK3Ruv5Z8HJklst6djLLZnOlnuEBk4DWs="
+    add listen-port=13234 name=wireguardLS
+
+    /interface/wireguard print
+     1  R name="wireguardLS" mtu=1420 listen-port=13234 private-key="sJMJVT6w2YoK3Ruv5Z8HJklst6djLLZnOlnuEBk4DWs="
       public-key="yWwRYBChRvZOTiBdGKaxaq5+R9eFslvoMIHdDOljGiE="
 
 
@@ -250,16 +252,18 @@ Die Peer configuration definiert, wer die WireGuard-Schnittstelle nutzen kann un
 Um die Gegenstelle zu identifizieren, muss ihr öffentlicher Schlüssel zusammen mit der erstellten WireGuard-Schnittstelle angegeben werden.
 
 ##LS-R1
-/interface/wireguard/peers
-add allowed-address=192.168.9.0/24 endpoint-address=203.0.113.98 endpoint-port=13234 interface=wireguardZH \
-public-key="yWwRYBChRvZOTiBdGKaxaq5+R9eFslvoMIHdDOljGiE="
-#Public Key von Zürich
+
+    /interface/wireguard/peers
+    add allowed-address=192.168.9.0/24 endpoint-address=203.0.113.98 endpoint-port=13234 interface=wireguardZH \
+    public-key="yWwRYBChRvZOTiBdGKaxaq5+R9eFslvoMIHdDOljGiE="
+    #Public Key von Zürich
 
 ##ZH-R1-R1
-/interface/wireguard/peers
-add allowed-address=192.168.13.0/24 endpoint-address=203.0.113.70 endpoint-port=13234 interface=wireguardLS \
-public-key="lZexpEtJY2Pdb4X0oC7D63iOTMZqziYirHybnePaXkg="
-#Public Key von Lausanne
+
+    /interface/wireguard/peers
+    add allowed-address=192.168.13.0/24 endpoint-address=203.0.113.70 endpoint-port=13234 interface=wireguardLS \
+    public-key="lZexpEtJY2Pdb4X0oC7D63iOTMZqziYirHybnePaXkg="
+    #Public Key von Lausanne
 
 
 
@@ -269,16 +273,18 @@ Zum Schluss müssen die IP und Routing Informationen konfiguriert werden, um den
 
 
 ##LS-R1
-/ip/address
-add address=192.168.250.1/30 interface=wireguardZH
-/ip/route
-add dst-address=192.168.9.0/24 gateway=wireguardZH
+
+    /ip/address
+    add address=192.168.250.1/30 interface=wireguardZH
+    /ip/route
+    add dst-address=192.168.9.0/24 gateway=wireguardZH
 
 ##ZH-R1
-/ip/address
-add address=192.168.250.1/30 interface=wireguardLS
-/ip/route
-add dst-address=192.168.13.0/24 gateway=wireguardLS
+
+    /ip/address
+    add address=192.168.250.1/30 interface=wireguardLS
+    /ip/route
+    add dst-address=192.168.13.0/24 gateway=wireguardLS
 
 
 
@@ -286,19 +292,21 @@ add dst-address=192.168.13.0/24 gateway=wireguardLS
 Bei der Firewall müssen auch noch Einstellungen vorgenommen werden. Standardmässig wird der Tunnel blockiert und somit müssen die Input-Chains von beiden Seiten akzeptiert, um die Kommunikation zu gewährleisten.
 
 ##LS-R1
-/ip/firewall/filter
-add action=accept chain=input dst-port=13234 protocol=udp src-address=203.0.113.98
-add action=accept chain=input dst-port=13234 protocol=udp src-address=192.168.250.2
-add action=accept chain=forward dst-address=192.168.9.0/24 src-address=192.168.13.0/24
-add action=accept chain=forward dst-address=192.168.13.0/24 src-address=192.168.9.0/24
+
+    /ip/firewall/filter
+    add action=accept chain=input dst-port=13234 protocol=udp src-address=203.0.113.98
+    add action=accept chain=input dst-port=13234 protocol=udp src-address=192.168.250.2
+    add action=accept chain=forward dst-address=192.168.9.0/24 src-address=192.168.13.0/24
+    add action=accept chain=forward dst-address=192.168.13.0/24 src-address=192.168.9.0/24
 
 
 ##ZH-R1
-/ip/firewall/filter
-add action=accept chain=input dst-port=13234 protocol=udp src-address=203.0.113.70
-add action=accept chain=input dst-port=13234 protocol=udp src-address=192.168.250.1
-add action=accept chain=forward dst-address=192.168.13.0/24 src-address=192.168.9.0/24
-add action=accept chain=forward dst-address=192.168.9.0/24 src-address=192.168.13.0/24
+
+    /ip/firewall/filter
+    add action=accept chain=input dst-port=13234 protocol=udp src-address=203.0.113.70
+    add action=accept chain=input dst-port=13234 protocol=udp src-address=192.168.250.1
+    add action=accept chain=forward dst-address=192.168.13.0/24 src-address=192.168.9.0/24
+    add action=accept chain=forward dst-address=192.168.9.0/24 src-address=192.168.13.0/24
 
 
 
