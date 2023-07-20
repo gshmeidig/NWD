@@ -146,6 +146,7 @@ Test
     add action=masquerade chain=srcnat out-interface=ether1
 
 ###########################Site to Site IPsec tunnel (LS to BS)
+https://help.mikrotik.com/docs/display/ROS/IPsec#IPsec-SitetoSiteIPsec(IKEv1)tunnel
 
 add chain=forward action=accept place-before=0 src-address=192.168.11.0/24 dst-address=192.168.13.0/24 connection-state=established,related
 add chain=forward action=accept place-before=1 src-address=192.168.13.0/24 dst-address=192.168.11.0/24 connection-state=established,related
@@ -155,6 +156,7 @@ add action=notrack chain=prerouting src-address=192.168.11.0/24 dst-address=192.
 
 
 ###########################Site to Site WireGuard tunnel (LS to ZH)
+https://help.mikrotik.com/docs/display/ROS/WireGuard
 
 #### interface configuration:
 
