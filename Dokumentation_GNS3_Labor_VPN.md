@@ -187,7 +187,7 @@ Als näcshter Schritt wird die "Identity" erstellt, wobei ein gemeinsamen sogenn
 
 Weiter wird eine Richtlinie erstellen, die die Netze/Hosts steuert, zwischen denen der Datenverkehr verschlüsselt werden soll.
 
-    ip ipsec policy
+    /ip ipsec policy
     add dst-address=192.168.11.0/24 peer=ike1-BS proposal=ike1-BS src-address=192.168.13.0/24 tunnel=yes
 
 Nun wird zwar der IPsec Tunnel aufgebaut, jeodch können noch keine Daten über den IPsec-Tunnel gesendet werden.
@@ -196,6 +196,7 @@ Dies liegt daran, dass beide Router NAT-Regeln (Masquerade) haben, die die Quell
 Um dies zu beheben, müssen wir eine IP/Firewall/NAT-Umgehungsregel einrichten.
 Dabei ist es sehr wichtig, dass die Bypass-Regel an erster Stelle aller anderen NAT-Regeln steht.
 
+    /ip firewall nat
     add action=accept chain=srcnat dst-address=192.168.11.0/24 src-address=192.168.13.0/24
 
 Ein weiteres Problem ist, dass bei aktiviertem IP/Fasttrack das Paket die IPsec-Richtlinien umgeht. Wir müssen also eine Akzeptanzregel vor FastTrack hinzufügen.
@@ -206,16 +207,40 @@ Ein weiteres Problem ist, dass bei aktiviertem IP/Fasttrack das Paket die IPsec-
 
 Dies kann jedoch zu einer erheblichen Belastung der CPU des Routers führen, wenn eine größere Anzahl von Tunneln und erheblicher Datenverkehr in jedem Tunnel vorhanden sind.
 Um dies entgegen zu wirken kann die Verbindungsverfolgung Umgangen werden.
-
+    
+    /ip firewall raw
     add action=notrack chain=prerouting src-address=192.168.13.0/24 dst-address=192.168.11.0/24
 
 #### Konfiguration Router Basel - BS-R1
+Bei dem Router in Basel müssen die geleichen Einstellungen wie bei Lausanne vorgenommen werden. Dabei muss aber darauf geachtet werden, dass spezifische Einstellungen wie IP oder Public- Private-Keys.
+
+    /ip ipsec profile  
+    add dh-group=modp2048 enc-algorithm=aes-128 name=ike1-LS
+
+    /ip ipsec proposal
+    add enc-algorithms=aes-128-cbc name=ike1-LS pfs-group=modp2048
+
+    /ip ipsec peer
+    add address=203.0.113.70/32 name=ike1-LS profile=ike1-LS
+
+    /ip ipsec identity
+    add peer=ike1-LS
+
+    /ip ipsec policy
+    add dst-address=192.168.13.0/24 peer=ike1-LS proposal=ike1-LS src-address=192.168.11.0/24 tunnel=yes
+
+    /ip firewall nat
+    add action=accept chain=srcnat dst-address=192.168.13.0/24 src-address=192.168.11.0/24
+
+    /ip firewall filter
+    add chain=forward action=accept place-before=0 src-address=192.168.11.0/24 dst-address=192.168.13.0/24 connection-state=established,related
+    add chain=forward action=accept place-before=1 src-address=192.168.13.0/24 dst-address=192.168.11.0/24 connection-state=established,related
+
+    /ip firewall raw
+    add action=notrack chain=prerouting src-address=192.168.11.0/24 dst-address=192.168.13.0/24
 
 
-add action=notrack chain=prerouting src-address=192.168.11.0/24 dst-address=192.168.13.0/24
-
-
-###########################Site to Site WireGuard tunnel (LS to ZH)
+### Site to Site WireGuard - Lausanne to Zürich
 Anhand der folgenden Anleitung 
 https://help.mikrotik.com/docs/display/ROS/WireGuard
 
@@ -226,39 +251,37 @@ Im Prinzip müssen beide Routers (LS-R1 und ZH-R1) konfiguriert werden, sodass d
 Der gesetzte Listen-Port muss bei beiden der gleiche sein (in unserem Fall "13234")
 
 
-##LS-R1
+#### LS-R1
 
     /interface/wireguard
     add listen-port=13234 name=wireguardZH
 
     /interface/wireguard print
-     1  R name="wireguardZH" mtu=1420 listen-port=13234 private-key="oGDJYeJg+kcUjqZUa0bw3BpWhsvPh2HdT5iGFBS20l4="
-      public-key="lZexpEtJY2Pdb4X0oC7D63iOTMZqziYirHybnePaXkg="
+    name="wireguardZH" mtu=1420 listen-port=13234 private-key="oGDJYeJg+kcUjqZUa0bw3BpWhsvPh2HdT5iGFBS20l4="public-key="lZexpEtJY2Pdb4X0oC7D63iOTMZqziYirHybnePaXkg="
 
 
-##ZH-R1
+#### ZH-R1
 
     add listen-port=13234 name=wireguardLS
 
     /interface/wireguard print
-     1  R name="wireguardLS" mtu=1420 listen-port=13234 private-key="sJMJVT6w2YoK3Ruv5Z8HJklst6djLLZnOlnuEBk4DWs="
-      public-key="yWwRYBChRvZOTiBdGKaxaq5+R9eFslvoMIHdDOljGiE="
+    name="wireguardLS" mtu=1420 listen-port=13234 private-key="sJMJVT6w2YoK3Ruv5Z8HJklst6djLLZnOlnuEBk4DWs="public-key="yWwRYBChRvZOTiBdGKaxaq5+R9eFslvoMIHdDOljGiE="
 
 
 
-####Peer configuration
+#### Peer configuration
 
 Die Peer configuration definiert, wer die WireGuard-Schnittstelle nutzen kann und welche Art von Datenverkehr darüber gesendet werden kann.
 Um die Gegenstelle zu identifizieren, muss ihr öffentlicher Schlüssel zusammen mit der erstellten WireGuard-Schnittstelle angegeben werden.
 
-##LS-R1
+#### LS-R1
 
     /interface/wireguard/peers
     add allowed-address=192.168.9.0/24 endpoint-address=203.0.113.98 endpoint-port=13234 interface=wireguardZH \
     public-key="yWwRYBChRvZOTiBdGKaxaq5+R9eFslvoMIHdDOljGiE="
     #Public Key von Zürich
 
-##ZH-R1-R1
+#### ZH-R1
 
     /interface/wireguard/peers
     add allowed-address=192.168.13.0/24 endpoint-address=203.0.113.70 endpoint-port=13234 interface=wireguardLS \
@@ -267,31 +290,29 @@ Um die Gegenstelle zu identifizieren, muss ihr öffentlicher Schlüssel zusammen
 
 
 
-####IP and routing configuration
+#### IP and routing configuration
 
 Zum Schluss müssen die IP und Routing Informationen konfiguriert werden, um den Datenverekhr über den Tunnel zu ermöglichen
 
 
-##LS-R1
+#### LS-R1
 
     /ip/address
     add address=192.168.250.1/30 interface=wireguardZH
     /ip/route
     add dst-address=192.168.9.0/24 gateway=wireguardZH
 
-##ZH-R1
+#### ZH-R1
 
     /ip/address
     add address=192.168.250.1/30 interface=wireguardLS
     /ip/route
     add dst-address=192.168.13.0/24 gateway=wireguardLS
 
-
-
-####Firewall considerations
+#### Firewall considerations
 Bei der Firewall müssen auch noch Einstellungen vorgenommen werden. Standardmässig wird der Tunnel blockiert und somit müssen die Input-Chains von beiden Seiten akzeptiert, um die Kommunikation zu gewährleisten.
 
-##LS-R1
+#### LS-R1
 
     /ip/firewall/filter
     add action=accept chain=input dst-port=13234 protocol=udp src-address=203.0.113.98
@@ -300,7 +321,7 @@ Bei der Firewall müssen auch noch Einstellungen vorgenommen werden. Standardmä
     add action=accept chain=forward dst-address=192.168.13.0/24 src-address=192.168.9.0/24
 
 
-##ZH-R1
+#### ZH-R1
 
     /ip/firewall/filter
     add action=accept chain=input dst-port=13234 protocol=udp src-address=203.0.113.70
