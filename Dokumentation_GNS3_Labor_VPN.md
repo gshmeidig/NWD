@@ -331,7 +331,21 @@ Bei der Firewall müssen auch noch Einstellungen vorgenommen werden. Standardmä
 
 ### RoadWarrior WireGuard tunnel - Worker1 to Lausanne
 
-Pewe Text
+Zuerst muss ein WireGuard Interface konfiguriert und die IP Adresse definiert werden.
+
+    /interface wireguard
+    add listen-port=13233 mtu=1420 name=MTW_LS
+    /ip address
+    add address=192.168.14.1/24 interface=MTW_LS network=192.168.14.0
+
+
+Danach müssen die interface wireguard peers gesetzt. Somit wird bei "allowed-address" die erlaubte IP Adresse definiert, welche über den interface (in unserem Fall "MTW_LS) erlaubt wird.
+
+
+    /interface wireguard peers
+    add allowed-address=192.168.14.2/32 interface=MTW_LS public-key=\
+    "9nSj/xiApoAJrZX99+EwJuiDH5Xp5WZrD2ceCecGrgc="
+
 
 ### Debian Sever
 
