@@ -97,14 +97,16 @@ Insgesamt erfordert die Kombination von IPSec und NAT eine sorgfältige Konfigur
 ## Dokumentation
 
 <p>Der Standort Lausanne haben wir wie folgt konfiguriert:<p>
-TEST
+Es ist ein Mikrotik Router und mussten dementsprechend die richtigen Befehle heraussuchen.
+
+Zuerst haben wir den Namen für den Router mit folgendem Befehl gesetzt:<br>
 
     /system identity
     set name=LS-R1
 
-Hallo
 
-<br>
+Anschliessend 
+
     /ip address 
     add address=203.0.113.70/30 interface=ether1 network=203.0.113.69
 
