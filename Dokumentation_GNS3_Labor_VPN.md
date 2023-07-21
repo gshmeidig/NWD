@@ -98,24 +98,23 @@ Insgesamt erfordert die Kombination von IPSec und NAT eine sorgfältige Konfigur
 
 <p>Der Standort Lausanne ist wie folgt konfiguriert:<p>
 
-Zuerst haben wir den Namen für den Router mit folgendem Befehl gesetzt:<br>
+Zuerst haben wir den Namen für den Router mit folgendem Befehl gesetzt:
 
     /system identity
     set name=LS-R1
-
-
+<br>
 Anschliessend muss die IP Adresse gesetzt werden.
 Für das Interface "ether1" haben wir die IP Adresse 203.0.113.70 mit der CIDR 30 gesetzt.
 Mit dem "network" wird sozusagen das Gateway "203.0.113.69" definiert.
 
     /ip address 
     add address=203.0.113.70/30 interface=ether1 network=203.0.113.69
-
+<br>
 Das Routing wird hier definiert. mit dst-address wird das Zielnetzwerk definiert bzw die Standardroute wo die Pakete weitergeleitet werden.
 
     /ip route 
     add dst-address=0.0.0.0/0 gateway=203.0.113.69
-
+<br>
 Als nächstes wird die DNS konfiguriert.
 Dafür gibt es die beiden Befehle "set allow-remote-requests" und "servers"
 
@@ -123,12 +122,12 @@ Mit "allow-remote-requests=yes" wird gesetzt, dass externe Geräte DNS-Anfragen 
 
     /ip dns
     set allow-remote-requests=yes servers=8.8.8.8
-
+<br>
 Hier wird eine zusätzliche IP Adresse gesetzt aber für das interrface "ether2".
 
     /ip address 
     add address=192.168.13.1/24 interface=ether2 network=192.168.13.0
-
+<br>
 Im Verzeichnis /ip pool
 add name=dhcp_pool1 wird der Name gesetzt
 Der IP Pool wird gesetzt mit dem Range von 192.168.13.50 bis 192.168.13.100.
@@ -136,7 +135,7 @@ Somit wird über den DHCP Server des Routers die IP Adresse der Geräte in diese
 
     /ip pool
     add name=dhcp_pool1 ranges=192.168.13.50-192.168.13.100
-
+<br>
 Nun werden die Parameter für den DHCP-Server Netzwerk gesetzt
 
 Mit "adress" wird die IP Adresse inkl. CIDR 24 gesetzt<br>
@@ -144,13 +143,13 @@ Mit DNS-Server wird die Adresse vom DNS Server gesetzt und mit gateway natürlic
 
     ip dhcp-server network
     add address=192.168.13.0/24 dns-server=192.168.13.1 gateway=192.168.13.1
-
+<br>
 Mit "address-pool=dhcp_pool1" wird der Adress Pool festgelegt und gilt für den Interface "ether2".
 Zusätzlich wird der Name "dhcp1" festgelegt.
 
     /ip dhcp-server/
     add address-pool=dhcp_pool1 interface=ether2 name=dhcp1
-
+<br>
 Mit "action=masquerade" wird der Datenverkehr verschleiert.
 
 mit "chain=srcnat" wird die Firewall-Kette angegeben. Wir haben sie in den "srcnat"Kette platziert, die für den ausgehenden Datenverkehr verwendet wird.
@@ -160,6 +159,7 @@ mit "out-interface=ether1" wird der Ausgangsinterface definiert bzw über welche
 
     /ip firewall nat
     add action=masquerade chain=srcnat out-interface=ether1
+<br>
 
 ### IPsec Site to Site - Lausanne to Basel
 Alle Konfigurationen wurden über das Terminal getätigt. Mit dem Interface werden manchmal unnötige Einstellungen aktivert, welche man nur über das Terminal löschen kann.
@@ -170,26 +170,26 @@ Als aller erst wird ein IPsec Profile erstellt. Dabei werden mittels "dh-group" 
 
     /ip ipsec profile
     add dh-group=modp2048 enc-algorithm=aes-128 name=ike1-BS
-
+<br>
 Nun wird der Proposal erstellt, in welchem ebenfalls die Verhandlungsmethode und Verschlüsselungsalgorithmus eingestllt wird.
 
     /ip ipsec proposal
     add enc-algorithms=aes-128-cbc name=ike1-BS pfs-group=modp2048
-
+<br>
 Weiter wird die so gennante "Gegenstelle" das Peer konfiguriert. Dabei wird die IP des zuerreichenden Router eingegeben.
     /ip ipsec peer
     add address=203.0.113.82/32 name=ike1-BS profile=ike1-BS
-
+<br>
 Als näcshter Schritt wird die "Identity" erstellt, wobei ein gemeinsamen sogennanten "Pre-Shared Key" defineirt wrid. Der Pre-Shared Key wird ebenfalls auf dem entfernten Router hinterlegt.
 
     /ip ipsec identity
     add peer=ike1-BS secret=tbz1234
-
+<br>
 Weiter wird eine Richtlinie erstellen, die die Netze/Hosts steuert, zwischen denen der Datenverkehr verschlüsselt werden soll.
 
     /ip ipsec policy
     add dst-address=192.168.11.0/24 peer=ike1-BS proposal=ike1-BS src-address=192.168.13.0/24 tunnel=yes
-
+<br>
 Nun wird zwar der IPsec Tunnel aufgebaut, jeodch können noch keine Daten über den IPsec-Tunnel gesendet werden.
 Dies liegt daran, dass beide Router NAT-Regeln (Masquerade) haben, die die Quelladressen ändern, bevor ein Paket verschlüsselt wird. Der Router ist nicht in der Lage, das Paket zu verschlüsseln, weil die Quelladresse nicht mit der in der Richtlinienkonfiguration angegebenen Adresse übereinstimmt.
 
@@ -198,18 +198,19 @@ Dabei ist es sehr wichtig, dass die Bypass-Regel an erster Stelle aller anderen 
 
     /ip firewall nat
     add action=accept chain=srcnat dst-address=192.168.11.0/24 src-address=192.168.13.0/24
-
+<br>
 Ein weiteres Problem ist, dass bei aktiviertem IP/Fasttrack das Paket die IPsec-Richtlinien umgeht. Wir müssen also eine Akzeptanzregel vor FastTrack hinzufügen.
 
     /ip firewall filter
     add chain=forward action=accept place-before=0 src-address=192.168.11.0/24 dst-address=192.168.13.0/24 connection-state=established,related
     add chain=forward action=accept place-before=1 src-address=192.168.13.0/24 dst-address=192.168.11.0/24 connection-state=established,related
-
+<br>
 Dies kann jedoch zu einer erheblichen Belastung der CPU des Routers führen, wenn eine größere Anzahl von Tunneln und erheblicher Datenverkehr in jedem Tunnel vorhanden sind.
 Um dies entgegen zu wirken kann die Verbindungsverfolgung Umgangen werden.
-    
+
     /ip firewall raw
     add action=notrack chain=prerouting src-address=192.168.13.0/24 dst-address=192.168.11.0/24
+<br>
 
 #### Konfiguration Router Basel - BS-R1
 Bei dem Router in Basel müssen die geleichen Einstellungen wie bei Lausanne vorgenommen werden. Dabei muss aber darauf geachtet werden, dass spezifische Einstellungen wie IP oder Public- Private-Keys.
@@ -239,7 +240,6 @@ Bei dem Router in Basel müssen die geleichen Einstellungen wie bei Lausanne vor
     /ip firewall raw
     add action=notrack chain=prerouting src-address=192.168.11.0/24 dst-address=192.168.13.0/24
 
-
 ### Site to Site WireGuard - Lausanne to Zürich
 Anhand der folgenden Anleitung 
 https://help.mikrotik.com/docs/display/ROS/WireGuard
@@ -250,7 +250,6 @@ Im Prinzip müssen beide Routers (LS-R1 und ZH-R1) konfiguriert werden, sodass d
 
 Der gesetzte Listen-Port muss bei beiden der gleiche sein (in unserem Fall "13234")
 
-
 #### LS-R1
 
     /interface/wireguard
@@ -259,7 +258,6 @@ Der gesetzte Listen-Port muss bei beiden der gleiche sein (in unserem Fall "1323
     /interface/wireguard print
     name="wireguardZH" mtu=1420 listen-port=13234 private-key="oGDJYeJg+kcUjqZUa0bw3BpWhsvPh2HdT5iGFBS20l4="public-key="lZexpEtJY2Pdb4X0oC7D63iOTMZqziYirHybnePaXkg="
 
-
 #### ZH-R1
 
     add listen-port=13234 name=wireguardLS
@@ -267,12 +265,10 @@ Der gesetzte Listen-Port muss bei beiden der gleiche sein (in unserem Fall "1323
     /interface/wireguard print
     name="wireguardLS" mtu=1420 listen-port=13234 private-key="sJMJVT6w2YoK3Ruv5Z8HJklst6djLLZnOlnuEBk4DWs="public-key="yWwRYBChRvZOTiBdGKaxaq5+R9eFslvoMIHdDOljGiE="
 
-
-
 #### Peer configuration
 
 Die Peer configuration definiert, wer die WireGuard-Schnittstelle nutzen kann und welche Art von Datenverkehr darüber gesendet werden kann.
-Um die Gegenstelle zu identifizieren, muss ihr öffentlicher Schlüssel zusammen mit der erstellten WireGuard-Schnittstelle angegeben werden.
+Um die Gegenstelle zu identifizieren, muss ihr öffentlicher Schlüssel zusammen mit der erstellten WireGuard-Schnittstelle angegeben werden.s
 
 #### LS-R1
 
@@ -288,12 +284,9 @@ Um die Gegenstelle zu identifizieren, muss ihr öffentlicher Schlüssel zusammen
     public-key="lZexpEtJY2Pdb4X0oC7D63iOTMZqziYirHybnePaXkg="
     #Public Key von Lausanne
 
-
-
 #### IP and routing configuration
 
 Zum Schluss müssen die IP und Routing Informationen konfiguriert werden, um den Datenverekhr über den Tunnel zu ermöglichen
-
 
 #### LS-R1
 
@@ -320,7 +313,6 @@ Bei der Firewall müssen auch noch Einstellungen vorgenommen werden. Standardmä
     add action=accept chain=forward dst-address=192.168.9.0/24 src-address=192.168.13.0/24
     add action=accept chain=forward dst-address=192.168.13.0/24 src-address=192.168.9.0/24
 
-
 #### ZH-R1
 
     /ip/firewall/filter
@@ -331,25 +323,96 @@ Bei der Firewall müssen auch noch Einstellungen vorgenommen werden. Standardmä
 
 ### RoadWarrior WireGuard tunnel - Worker1 to Lausanne
 
+#### Router Lausanne
 Zuerst muss ein WireGuard Interface konfiguriert und die IP Adresse definiert werden.
 
     /interface wireguard
     add listen-port=13233 mtu=1420 name=MTW_LS
     /ip address
     add address=192.168.14.1/24 interface=MTW_LS network=192.168.14.0
-
-
+<br>
 Danach müssen die interface wireguard peers gesetzt. Somit wird bei "allowed-address" die erlaubte IP Adresse definiert, welche über den interface (in unserem Fall "MTW_LS) erlaubt wird.
-
 
     /interface wireguard peers
     add allowed-address=192.168.14.2/32 interface=MTW_LS public-key=\
     "9nSj/xiApoAJrZX99+EwJuiDH5Xp5WZrD2ceCecGrgc="
+<br>
+Damit die Verbindung nicht von der Firewall blockiert wird, erstellen wir noch die folgende Regel wleche Daten über das UDP Protkoll auf dem Port 13233 akzepriert.
 
+    /ip firewall filter
+    add action=accept chain=input comment="allow WireGuard" dst-port=13233 protocol=udp place-before=1
+<br>
+Nun erlauben wir den Geräten via RoadWarrior zugriff auf die Dienste des Routers
+
+    /ip firewall filter
+    add action=accept chain=input comment="allow WireGuard traffic" src-address=192.168.14.0/24 place-before=1
+
+#### Wiregurad Client Worker1
+Das Konfigurationfile des Worker1 ist wie folgt:
+
+![Konfiguration RoadWarrior Worker1](/Bilder/Konfig_RoadWarrior_Worker1.png)
 
 ### Debian Sever
+#### User erstellen
+User für den Share zugriff erstellen:
 
-Schmidli Text 
+    sudo useradd worker1
+<br>
+Passwort für den User feslegen
+
+    sudo passwd worker1 
+
+    tbz1234
+
+#### FileShare Dienst installieren -  Samba
+Smaba Server installieren
+
+    sudo apt-get install samba
+<br>
+
+Vorgegeben Konfigurationsdatei verschieben
+    sudo mv /etc/samba/smb.conf /etc/samba/smb.orig
+<br>
+Neue Konfigurationsdatei erstellen
+
+    sudo vi /etc/samba/smb.conf
+<br>
+Folgende parameter in die Konfigurationsdatei eintragen
+
+    [global]
+    workgroup = smb
+    security = user
+    map to guest = Bad Password
+
+    [homes]
+    comment = Home Directories
+    browsable = no
+    read only = no
+    create mode = 0750
+
+    [public]
+    path = /media/storage/ 
+    public = yes
+    writable = yes
+    comment = smb share
+    printable = no
+    guest ok = yes
+<br>
+Die Parameter in der Konfigurationsdatei verweisen auf einen Ordner "Storage" im Verzeichnis "Media". Dieser Ordner existiert noch nicht und muss wie folgt erstellt werden.
+
+    sudo mkdir /media/storage
+<br>
+Nun müssen noch die Berechtigungen erteilt werden
+
+    sudo chmod 777 /media/storage
+<br>
+Damit die Konfigurationen übernoimmen werden muss der Samba Dienst neugestartet werden
+
+    sudo systemctl restart smbd.service
+
+#### Laufwerk verbinden Worker1
+
+
 
 ## Glossar
 
