@@ -365,54 +365,63 @@ Passwort für den User feslegen
     tbz1234
 
 #### FileShare Dienst installieren -  Samba
-Smaba Server installieren
+Samba Server installieren
 
     sudo apt-get install samba
 <br>
+Erstellter User der Samba DB hinzufügen
 
-Vorgegeben Konfigurationsdatei verschieben
-    sudo mv /etc/samba/smb.conf /etc/samba/smb.orig
+    sudo smbpasswd -a worker
+
+    tbz1234
 <br>
-Neue Konfigurationsdatei erstellen
+User wechslen zu Root User
 
-    sudo vi /etc/samba/smb.conf
+    sudo -s
 <br>
-Folgende parameter in die Konfigurationsdatei eintragen
+Nun den Ordner für die Freigabe erstellen.
 
-    [global]
-    workgroup = smb
-    security = user
-    map to guest = Bad Password
-
-    [homes]
-    comment = Home Directories
-    browsable = no
-    read only = no
-    create mode = 0750
-
-    [public]
-    path = /media/storage/ 
-    public = yes
-    writable = yes
-    comment = smb share
-    printable = no
-    guest ok = yes
+    mkdir /home/worker/shared_folder
 <br>
-Die Parameter in der Konfigurationsdatei verweisen auf einen Ordner "Storage" im Verzeichnis "Media". Dieser Ordner existiert noch nicht und muss wie folgt erstellt werden.
+Nun mmuss noch der Besitzer und die Zugriffberechtigung angepasst werden
 
-    sudo mkdir /media/storage
+    chown worker shared_folder
+    chgrp worker shared_folder
+
+Konfigurations-File öffnen
+
+    sudo nano /etc/samba/smb.conf
 <br>
-Nun müssen noch die Berechtigungen erteilt werden
+Folgende parameter in die Konfigurationsdatei eintragen und gespeichert werden
 
-    sudo chmod 777 /media/storage
+    [shared_folder]
+    path = /home/worker/shared_folder
+    readonly = no
+    inherit permisson = yes
+
 <br>
-Damit die Konfigurationen übernoimmen werden muss der Samba Dienst neugestartet werden
+zum Abschluss muss der Samba-Service neugestartet werden
 
-    sudo systemctl restart smbd.service
+    service smbd restart
 
 #### Laufwerk verbinden Worker1
+Um das Laufwerk für den Worker1 zu verbinden, muss der Explorer geöffnet werden und danach über Rechtsklick auf "Network" die Optione "Map network device..." ausgewählt werden.
+![Konfiguration RoadWarrior Worker1](/Bilder/MapND.png)
+<br>
+Nun muss der Pfad zum Freigegebnen Ordner angegeben werden, in diesem Fall also
 
+    \\192.168.13.96\shared_folder
 
+Zu beachten ist noch das die zwei Optionen unterhalb, also "Reconnect after sign-in" und "Connect using different credentials" ausgewählt sind.
+![Konfiguration RoadWarrior Worker1](/Bilder/MapND_Destination.png)
+<br>
+Beim Anmeldefenster den vorherigen erstllten User Benutzern. Es ist zu beachten das vor dem User auf den Debian Server mit "192.168.13.96\" verwiesen werden muss.
+
+![Konfiguration RoadWarrior Worker1](/Bilder/MapND_Cred.png)
+<br>
+Wenn das Verbinden erfolgreich war, öffnet sich dies in einem neuen Fenster.
+
+![Konfiguration RoadWarrior Worker1](/Bilder/MapND_Succees.png)
 
 ## Glossar
 
