@@ -371,7 +371,7 @@ Samba Server installieren
 <br>
 Erstellter User der Samba DB hinzufügen
 
-    sudo smbpasswd -a worker
+    sudo smbpasswd -a worker1
 
     tbz1234
 <br>
