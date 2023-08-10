@@ -385,8 +385,8 @@ Nun den Ordner für die Freigabe erstellen.
 <br>
 Nun mmuss noch der Besitzer und die Zugriffberechtigung angepasst werden
 
-    chown worker shared_folder
-    chgrp worker shared_folder
+    chown worker1 shared_folder
+    chgrp worker1 shared_folder
 
 Konfigurations-File öffnen
 
